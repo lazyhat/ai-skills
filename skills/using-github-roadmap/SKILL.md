@@ -58,13 +58,94 @@ Used at the start of brainstorming, writing-plans, or executing-plans.
    gh project item-list <N> --owner <owner> --limit 50 --format json \
      --jq '.items[] | select(.status == "Now" or .status == "Next" or .status == "Backlog" or .status == "Inbox") | "#\(.content.number) [\(.status)] \(.content.title)"'
    ```
-2. Present a `vscode_askQuestions` with the list + "Create new issue" + "Skip (work without issue, requires explicit user override)".
-3. If create:
+2. Match the current unit of work against candidate issues strictly:
+   - Use an existing issue only when its title/body match the current deliverable 1:1.
+   - Do not bind work to a broad, adjacent, or merely related issue just because it is close.
+   - If a candidate is related but not exact, run `roadmap:related-issue-triage` before selecting or creating anything.
+3. Present a `vscode_askQuestions` with exact-match issues, related-but-not-exact issues clearly marked, "Create new issue", and "Skip (work without issue, requires explicit user override)".
+4. If create:
    - Ask for title, theme label (one of repo's `theme:*`), optional `priority:*`, `kind:idea` for umbrella.
+   - Write a detailed issue body using `roadmap:issue-body-template`.
    - `gh issue create --repo <repo> --title "<title>" --label "<labels>" --body "<body>"` → capture URL.
    - `gh project item-add <N> --owner <owner> --url <URL> --format json --jq .id` → capture item id.
    - Set Status = Inbox via `roadmap:status`.
-4. Return `{issue_number, issue_url, item_id}`.
+5. Return `{issue_number, issue_url, item_id}`.
+
+### `roadmap:issue-body-template`
+
+New issues created during execution must be useful without the chat transcript. Do not create one-line placeholder issues.
+
+Use this Markdown body:
+
+```markdown
+## Context
+
+<Why this work exists now. Include the user-visible problem, current code state, and any related issue numbers.>
+
+## Goal
+
+<One concrete outcome this issue should deliver.>
+
+## Scope
+
+- <Specific change 1>
+- <Specific change 2>
+- <Specific change 3>
+
+## Out of Scope
+
+- <Explicitly excluded adjacent work>
+- <Architecture/feature work that should not sneak into this issue>
+
+## Acceptance Criteria
+
+- [ ] <Observable behavior or code boundary that must be true>
+- [ ] <Compatibility/API behavior that must remain true>
+- [ ] <User-facing or developer-facing result>
+
+## Verification
+
+- <Exact command/test/manual check expected for this issue>
+- <Additional command/test/manual check if needed>
+
+## Links
+
+- Related: #<n>
+- Parent/Sub-task: #<n>
+```
+
+Rules:
+- If there are no related issues, omit the `Links` section.
+- `Acceptance Criteria` must be specific enough that a reviewer can decide whether the issue is done.
+- `Verification` must name concrete commands or concrete in-game/manual checks.
+- `Out of Scope` is required when an adjacent issue exists or when the work could easily expand.
+- If you cannot fill a section from available context, ask the user before creating the issue.
+
+### `roadmap:related-issue-triage`
+
+Use this when an existing issue is close to the current work but does not match 1:1.
+
+1. Check whether the existing issue is still relevant:
+   ```bash
+   gh issue view <n> --repo <repo> --json number,title,body,state,labels,url
+   ```
+   - If the issue is obsolete or no longer describes intended work, close it as `not_planned`, set Roadmap Status = Dropped, then create a new exact issue for the current work.
+   - If the issue is still relevant, keep it open and create or select a separate exact issue for the current work.
+2. Establish the relationship:
+   - If the existing issue is broader/umbrella and current work is a slice, make the current issue a sub-issue of the existing one when the repo/project supports GitHub sub-issues.
+   - If the current work is broader and the existing issue is a slice, make the existing issue a sub-issue of the current issue when supported.
+   - If sub-issues are not available through the configured tooling, add explicit cross-links with issue comments:
+     ```bash
+     gh issue comment <parent> --repo <repo> --body "Sub-task: #<child>"
+     gh issue comment <child> --repo <repo> --body "Parent task: #<parent>"
+     ```
+   - If neither issue owns the other, link both as related:
+     ```bash
+     gh issue comment <a> --repo <repo> --body "Related: #<b>"
+     gh issue comment <b> --repo <repo> --body "Related: #<a>"
+     ```
+3. Bind the current session to the exact issue, not to the related issue.
+4. If relationship semantics are ambiguous, stop and ask the user before creating links.
 
 ### `roadmap:link-spec`
 
