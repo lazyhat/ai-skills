@@ -71,6 +71,29 @@ Used at the start of brainstorming, writing-plans, or executing-plans.
    - Set Status = Inbox via `roadmap:status`.
 5. Return `{issue_number, issue_url, item_id}`.
 
+### `roadmap:track-active-issue`
+
+After selecting or creating an issue, keep tracking it until the final response.
+
+Required working notes for the current session:
+
+```text
+Roadmap issue: #<n> <url>
+Project item: <item-id>
+Current status: <Inbox|Backlog|Next|Now|Done|Dropped>
+Close policy: <close now | leave open for manual check | leave open for follow-up>
+```
+
+Rules:
+- Move the exact issue to `Now` before making code changes for it.
+- Every spec, plan, and commit for the work must reference the exact issue number.
+- Before final response, re-check the issue status and decide whether it should be closed, moved to `Done`, or left open.
+- If verification includes manual/in-game checks that the user will do, leave the issue open and state the exact remaining checks in the final response.
+- If all acceptance criteria are verified, close the issue as `completed` and set Roadmap Status = Done.
+- If the work is abandoned, close as `not_planned`, add `status:dropped` when available, and set Roadmap Status = Dropped.
+- If permissions prevent comments, close, or status edits, report the failed command and exact required manual action.
+- Never finish with only “committed” when a Roadmap issue is still in `Now`; explicitly say why it remains open or what status change was performed.
+
 ### `roadmap:issue-body-template`
 
 New issues created during execution must be useful without the chat transcript. Do not create one-line placeholder issues.
