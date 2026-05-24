@@ -11,6 +11,12 @@ All non-trivial work in a roadmap-tracked repo MUST be bound to a GitHub issue t
 
 **Announce at start:** "I'm using the using-github-roadmap skill to bind this work to the roadmap."
 
+## GitHub Tooling
+
+Use the `gh` CLI for GitHub issues, pull requests, repository metadata, and Projects v2 operations. Do not use the
+GitHub MCP server or GitHub app connector tools. When a first-class `gh` command is missing or insufficient, use
+`gh api` for REST or GraphQL calls.
+
 <HARD-GATE>
 Do NOT continue with brainstorming, writing-plans, executing-plans, or finishing-a-development-branch until the current unit of work has an associated GitHub issue and that issue is on the roadmap project. If no project config is present in the repo, stop and ask the user to add one (template in the "Per-repo config" section).
 </HARD-GATE>
@@ -93,6 +99,36 @@ Rules:
 - If the work is abandoned, close as `not_planned`, add `status:dropped` when available, and set Roadmap Status = Dropped.
 - If permissions prevent comments, close, or status edits, report the failed command and exact required manual action.
 - Never finish with only “committed” when a Roadmap issue is still in `Now`; explicitly say why it remains open or what status change was performed.
+
+### `roadmap:keep-issue-current`
+
+Used during brainstorming and planning whenever the design materially changes.
+Do not let the issue remain as a stale placeholder while the chat/spec moves on.
+
+Update the exact bound issue, not a related umbrella issue:
+
+1. Re-read the issue before updating:
+   ```bash
+   gh issue view <n> --repo <repo> --json number,title,body,state,labels,url
+   ```
+2. If the title/scope/acceptance criteria no longer match the current design,
+   update the issue body using `roadmap:issue-body-template` sections. Preserve
+   useful existing links and comments; do not erase context.
+3. Add or update these details before leaving brainstorming:
+   - current design summary;
+   - accepted architecture decisions;
+   - explicit out-of-scope boundaries;
+   - verification expectations;
+   - spec link, once the spec exists;
+   - follow-up issues and parent/related links.
+4. If the issue has become obsolete or too broad/narrow, run
+   `roadmap:related-issue-triage` instead of silently continuing.
+5. If `gh issue edit` fails due token/tooling limitations, use `gh api` PATCH
+   for the body. If body edits are impossible, add a comment with the current
+   design state and report the limitation in the final response.
+
+Minimum final state after brainstorming: the issue must let a reader understand
+what was decided without reading the chat transcript.
 
 ### `roadmap:issue-body-template`
 
@@ -180,6 +216,29 @@ Return the line to embed at the top of any spec/plan:
 
 This is the first content line under the `# Title` of every spec and plan generated in a roadmap-tracked repo.
 
+### `roadmap:artifact-filename`
+
+Specs, design docs, and plans generated for roadmap-tracked work MUST include
+the bound issue number in the filename.
+
+Use these default forms:
+
+```text
+docs/superpowers/specs/YYYY-MM-DD-issue-N-<topic>-design.md
+docs/superpowers/plans/YYYY-MM-DD-issue-N-<feature-name>.md
+```
+
+Example for issue #52:
+
+```text
+docs/superpowers/specs/2026-05-24-issue-52-rux-storage-mmio-contract-design.md
+docs/superpowers/plans/2026-05-24-issue-52-rux-storage-mmio-contract.md
+```
+
+The issue header line from `roadmap:link-spec` is still required inside the
+file. The filename is for filesystem discoverability; the header is for
+clickable GitHub traceability.
+
 ### `roadmap:status <Inbox|Backlog|Next|Now|Done|Dropped> <item-id>`
 
 ```bash
@@ -211,8 +270,11 @@ GitHub auto-moves closed items to Done in well-configured boards. Verify and set
 | Phase | Caller | Action |
 |---|---|---|
 | Pre-brainstorm | brainstorming step 0 | `select-or-create` → return `#N` |
+| During brainstorming | brainstorming steps 3-8 | `keep-issue-current` after material scope/design changes |
 | Spec header | brainstorming step 6 | `link-spec` → embed line in spec |
+| Spec filename | brainstorming step 6 | `artifact-filename` → include `issue-N` in spec filename |
 | Plan header | writing-plans header section | `link-spec` → embed line in plan |
+| Plan filename | writing-plans save path | `artifact-filename` → include `issue-N` in plan filename |
 | Pre-execute | executing-plans step 1.5 | `status Now` |
 | Post-execute | executing-plans step 3 | `status Done` (or `close completed`) |
 | Branch finish | finishing-a-development-branch end | `close <reason>` |
@@ -222,7 +284,7 @@ GitHub auto-moves closed items to Done in well-configured boards. Verify and set
 - **Heredoc inside `&&` chain in zsh.** `cat > f << EOF ... EOF && cmd` puts zsh into `cmdand heredoc>` continuation hell. Always run heredocs as standalone commands, or use `--body-file` with a file written via your editor's file-write tool.
 - **fine-grained PAT for user-owned Projects v2.** GitHub explicitly does not support this. For roadmap operations a classic PAT with scope `project` is required. Repo-only issue operations work via REST PATCH on fine-grained tokens but `addComment`, `closeIssue`, and `createProjectV2` GraphQL mutations do not.
 - **Forgetting to add the issue to the project.** `gh issue create` does NOT auto-add to a project. Always follow with `gh project item-add`.
-- **Filename collisions when bound to issue.** Keep spec/plan filenames date-based; put `Issue: #N` in the header, not the filename.
+- **Missing issue number in artifact filenames.** Keep spec/plan filenames date-based, but include `issue-N` in the filename and `Issue: #N` in the header.
 - **Skipping the gate "because it's a small change".** If the change produces a commit on `dev`/`main`, it needs an issue. Use a single `chore: ...` issue if you must.
 
 ## Quick Reference

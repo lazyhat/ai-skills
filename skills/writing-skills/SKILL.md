@@ -19,6 +19,12 @@ You write test cases (pressure scenarios with subagents), watch them fail (basel
 
 **Official guidance:** For Anthropic's official skill authoring best practices, see anthropic-best-practices.md. This document provides additional patterns and guidelines that complement the TDD-focused approach in this skill.
 
+## GitHub Tooling
+
+When skill work needs GitHub access, use the `gh` CLI. Do not use the GitHub MCP server or GitHub app connector tools.
+Use `gh api` for REST or GraphQL operations that are not covered by first-class `gh` commands.
+This local policy overrides any supplemental reference examples that mention GitHub MCP tools.
+
 ## What is a Skill?
 
 A **skill** is a reference guide for proven techniques, patterns, or tools. Skills help future Claude instances find and apply effective approaches.

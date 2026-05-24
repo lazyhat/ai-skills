@@ -27,7 +27,8 @@ You MUST create a task for each of these items and complete them in order:
 3. **Ask clarifying questions** — one at a time, understand purpose/constraints/success criteria
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
-6. **Write design doc** — save the English spec to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`. First content line under the title MUST be `> Issue: [#N](url)` from step 0 (in roadmap-tracked repos).
+5.5. **Keep roadmap issue current** — REQUIRED SUB-SKILL: superpowers:using-github-roadmap → `keep-issue-current` after material design decisions, scope changes, follow-up decomposition, or before leaving brainstorming
+6. **Write design doc** — save the English spec to `docs/superpowers/specs/YYYY-MM-DD-issue-N-<topic>-design.md` in roadmap-tracked repos, using the exact issue number from step 0. First content line under the title MUST be `> Issue: [#N](url)` from step 0. In repos without roadmap tracking, use `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`.
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -96,6 +97,14 @@ digraph brainstorming {
 - Cover: architecture, components, data flow, error handling, testing
 - Be ready to go back and clarify if something doesn't make sense
 
+**Keeping the issue current:**
+
+- After any material decision, check whether the bound issue still matches the design.
+- Before writing the spec, update stale issue scope, acceptance criteria, and links.
+- After writing the spec, update the issue with the spec link and accepted design summary.
+- If the design creates follow-up slices, link existing issues or create exact follow-up issues instead of leaving relationships only in chat.
+- If issue update tooling fails, add a comment with the current design state and report the limitation.
+
 **Design for isolation and clarity:**
 
 - Break the system into smaller units that each have one clear purpose, communicate through well-defined interfaces, and can be understood and tested independently
@@ -113,7 +122,8 @@ digraph brainstorming {
 
 **Documentation:**
 
-- Write the validated design (spec) in English to `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md`
+- Write the validated design (spec) in English to `docs/superpowers/specs/YYYY-MM-DD-issue-N-<topic>-design.md` in roadmap-tracked repos, using the bound issue number
+  - Use `docs/superpowers/specs/YYYY-MM-DD-<topic>-design.md` only when the repo has no roadmap issue binding
   - (User preferences for spec location override these defaults)
 - Use elements-of-style:writing-clearly-and-concisely skill if available
 - Commit the design document to git
