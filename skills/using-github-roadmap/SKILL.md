@@ -221,23 +221,30 @@ This is the first content line under the `# Title` of every spec and plan genera
 Specs, design docs, and plans generated for roadmap-tracked work MUST include
 the bound issue number in the filename.
 
-Use these default forms:
+Before choosing a path, read the active repo instructions. Agent specs/plans
+belong in ignored scratch space by default and must not be committed unless the
+user explicitly asks for durable repo docs. The GitHub issue remains the durable
+source of truth for scope, acceptance criteria, verification, and links.
+
+Use these default scratch forms:
 
 ```text
-docs/superpowers/specs/YYYY-MM-DD-issue-N-<topic>-design.md
-docs/superpowers/plans/YYYY-MM-DD-issue-N-<feature-name>.md
+.agents/tmp/specs/YYYY-MM-DD-issue-N-<topic>-design.md
+.agents/tmp/plans/YYYY-MM-DD-issue-N-<feature-name>.md
 ```
 
-Example for issue #52:
+Examples for issue #52:
 
 ```text
-docs/superpowers/specs/2026-05-24-issue-52-rux-storage-mmio-contract-design.md
-docs/superpowers/plans/2026-05-24-issue-52-rux-storage-mmio-contract.md
+.agents/tmp/specs/2026-05-24-issue-52-rux-storage-mmio-contract-design.md
+.agents/tmp/plans/2026-05-24-issue-52-rux-storage-mmio-contract.md
 ```
 
 The issue header line from `roadmap:link-spec` is still required inside the
 file. The filename is for filesystem discoverability; the header is for
-clickable GitHub traceability.
+clickable GitHub traceability. For scratch artifacts, update the issue body or
+comments with the accepted design/plan summary instead of relying on a committed
+file link.
 
 ### `roadmap:status <Inbox|Backlog|Next|Now|Done|Dropped> <item-id>`
 

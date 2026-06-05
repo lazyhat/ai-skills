@@ -28,7 +28,7 @@ You MUST create a task for each of these items and complete them in order:
 4. **Propose 2-3 approaches** — with trade-offs and your recommendation
 5. **Present design** — in sections scaled to their complexity, get user approval after each section
 5.5. **Keep roadmap issue current** — REQUIRED SUB-SKILL: superpowers:using-github-roadmap → `keep-issue-current` after material design decisions, scope changes, follow-up decomposition, or before leaving brainstorming
-6. **Write design doc** — save the English spec to `docs/superpowers/specs/YYYY-MM-DD/YYYY-MM-DD-issue-N-<topic>-design.md` in roadmap-tracked repos, using the exact issue number from step 0. First content line under the title MUST be `> Issue: [#N](url)` from step 0. In repos without roadmap tracking, use `docs/superpowers/specs/YYYY-MM-DD/YYYY-MM-DD-<topic>-design.md`.
+6. **Write design doc** — save the English spec to `.agents/tmp/specs/YYYY-MM-DD-issue-N-<topic>-design.md` unless the active repo instructions declare a different ignored agent artifact path. Do not commit agent scratch specs by default. First content line under the title MUST be `> Issue: [#N](url)` when the work is roadmap-bound.
 7. **Spec self-review** — quick inline check for placeholders, contradictions, ambiguity, scope (see below)
 8. **User reviews written spec** — ask user to review the spec file before proceeding
 9. **Transition to implementation** — invoke writing-plans skill to create implementation plan
@@ -122,11 +122,11 @@ digraph brainstorming {
 
 **Documentation:**
 
-- Write the validated design (spec) in English to `docs/superpowers/specs/YYYY-MM-DD/YYYY-MM-DD-issue-N-<topic>-design.md` in roadmap-tracked repos, using the bound issue number
-  - Use `docs/superpowers/specs/YYYY-MM-DD/YYYY-MM-DD-<topic>-design.md` only when the repo has no roadmap issue binding
-  - (User preferences for spec location override these defaults)
+- Write the validated design (spec) in English to `.agents/tmp/specs/YYYY-MM-DD-issue-N-<topic>-design.md` unless the active repo instructions declare a different ignored agent artifact path.
+  - Use the bound issue number in roadmap-tracked repos.
+  - User preferences for spec location override this default.
 - Use elements-of-style:writing-clearly-and-concisely skill if available
-- Commit the design document to git
+- Commit the design document to git only when it is real project documentation or the user explicitly asks for durable repo docs. For ignored scratch specs, keep the GitHub issue current instead of committing the spec.
 
 **Spec Self-Review:**
 After writing the spec document, look at it with fresh eyes:

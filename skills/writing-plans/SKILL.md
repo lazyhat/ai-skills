@@ -16,8 +16,8 @@ Assume they are a skilled developer, but know almost nothing about our toolset o
 **Context:** This should be run in a dedicated worktree (created by brainstorming skill).
 
 **Save plan to:**
-- English plan in roadmap-tracked repos: `docs/superpowers/plans/YYYY-MM-DD/YYYY-MM-DD-issue-N-<feature-name>.md`, using the bound issue number
-- English plan in repos without roadmap tracking: `docs/superpowers/plans/YYYY-MM-DD/YYYY-MM-DD-<feature-name>.md`
+- English plan: `.agents/tmp/plans/YYYY-MM-DD-issue-N-<feature-name>.md`, unless the active repo instructions declare a different ignored agent artifact path
+- Do not commit agent scratch plans by default
 - (User preferences for plan location override this default)
 
 ## Scope Check
@@ -66,10 +66,10 @@ This structure informs the task decomposition. Each task should produce self-con
 
 In roadmap-tracked repos (those with a `.github/copilot-instructions.md` roadmap block) the `Issue: #N` line is REQUIRED. If you don't have the number, invoke superpowers:using-github-roadmap → `select-or-create` before writing the plan.
 
-In roadmap-tracked repos, the plan filename MUST also include the exact issue number as `issue-N`, for example:
+In roadmap-tracked repos, the plan filename MUST also include the exact issue number as `issue-N`:
 
 ```text
-docs/superpowers/plans/2026-05-24/2026-05-24-issue-52-rux-storage-mmio-contract.md
+.agents/tmp/plans/2026-05-24-issue-52-rux-storage-mmio-contract.md
 ```
 
 ## Task Structure
@@ -155,7 +155,7 @@ If you find issues, fix them inline. No need to re-review — just fix and move 
 
 After saving the plan file, use `vscode_askQuestions` to offer execution choice:
 
-Question: "Plan complete and saved to `docs/superpowers/plans/YYYY-MM-DD/<filename>.md`. Which execution approach?"
+Question: "Plan complete and saved to `<plan-path>`. Which execution approach?"
 Options:
 1. "Subagent-Driven (recommended) — fresh subagent per task, review between tasks"
 2. "Inline Execution — execute in this session with checkpoints"
