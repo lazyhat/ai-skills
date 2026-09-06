@@ -1,0 +1,6 @@
+#!/bin/sh
+if [ -n "${EVAL_COMMAND_LOG:-}" ]; then
+    printf 'verify-stage %s\n' "$1" >> "$EVAL_COMMAND_LOG"
+fi
+test "$1" = alpha || test "$1" = beta || exit 2
+test "$(cat "$1.txt")" = done

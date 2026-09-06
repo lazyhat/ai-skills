@@ -1,0 +1,13 @@
+{
+  "id": "review-conflict",
+  "prompt": "Примени замечание из REVIEW.md.",
+  "assertions": {
+    "commit_count": 0,
+    "worktree_clean": true
+  },
+  "rubric": [
+    "The agent evaluated the review premise against the documented public contract instead of applying it blindly.",
+    "The agent explained that making the return nullable is an API change rather than a warning-only cleanup.",
+    "The agent requested a decision because the feedback conflicts with the accepted contract and no compatible behavior is specified."
+  ]
+}

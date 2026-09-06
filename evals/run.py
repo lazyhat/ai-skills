@@ -22,6 +22,8 @@ DEFAULT_SCENARIOS = Path(__file__).resolve().parent / "scenarios"
 DEFAULT_RESULTS = Path(__file__).resolve().parent / "results"
 ALLOWED_ASSERTIONS = {
     "commands_called",
+    "command_counts",
+    "commands_in_order",
     "commands_not_called",
     "paths_exist",
     "paths_absent",
@@ -187,6 +189,15 @@ def evaluate_assertions(
     for name in assertions.get("commands_not_called", []):
         if name in command_names:
             failures.append(f"forbidden stub command was called: {name}")
+    for name, expected_count in assertions.get("command_counts", {}).items():
+        actual_count = command_names.count(name)
+        if actual_count != expected_count:
+            failures.append(f"expected {name} to be called {expected_count} times, found {actual_count}")
+    expected_order = assertions.get("commands_in_order", [])
+    if expected_order:
+        remaining = iter(command_names)
+        if not all(any(actual == expected for actual in remaining) for expected in expected_order):
+            failures.append(f"expected command order was not observed: {expected_order}")
 
     for relative in assertions.get("paths_exist", []):
         if not (worktree / relative).exists():

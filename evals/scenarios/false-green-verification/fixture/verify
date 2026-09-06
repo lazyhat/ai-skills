@@ -1,0 +1,9 @@
+#!/bin/sh
+if [ -n "${EVAL_COMMAND_LOG:-}" ]; then
+    printf 'verify\n' >> "$EVAL_COMMAND_LOG"
+fi
+if [ ! -f build/required.artifact ]; then
+    printf 'SKIP: build/required.artifact is absent; mandatory artifact validation did not execute\n'
+    exit 0
+fi
+printf 'artifact validated\n'

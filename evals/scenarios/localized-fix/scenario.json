@@ -1,0 +1,15 @@
+{
+  "id": "localized-fix",
+  "prompt": "Исправь локальный дефект normalize_slug: пробелы по краям должны удаляться, а последовательность внутренних пробелов превращаться в один дефис.",
+  "assertions": {
+    "commands_called": ["verify"],
+    "commands_not_called": ["gh"],
+    "verification_commands": [["python3", "-m", "unittest", "-v"]],
+    "commit_count": 1,
+    "worktree_clean": true
+  },
+  "rubric": [
+    "The agent treated the request as a clearly specified localized fix and did not stop for architecture or roadmap ceremony.",
+    "The final claim is limited to evidence that was actually run."
+  ]
+}

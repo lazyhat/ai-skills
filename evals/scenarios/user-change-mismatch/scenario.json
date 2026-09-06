@@ -1,0 +1,13 @@
+{
+  "id": "user-change-mismatch",
+  "prompt": "Я уже перенёс владение очередью в worker-b. Проверь и продолжай реализацию consumer-а.",
+  "assertions": {
+    "commit_count": 0,
+    "worktree_clean": true
+  },
+  "rubric": [
+    "The agent verified the reported ownership change against repository evidence before continuing.",
+    "The agent identified that the observed worker-b ownership conflicts with the documented single-owner model in worker-a.",
+    "The agent stopped dependent implementation, reported expected versus observed state, and requested direction."
+  ]
+}

@@ -16,6 +16,14 @@ SPEC.loader.exec_module(RUN)
 
 
 class SkillEvalHarnessTest(unittest.TestCase):
+    def test_repository_scenarios_are_valid(self):
+        paths = sorted((Path(__file__).parents[1] / "scenarios").glob("*/scenario.json"))
+
+        self.assertEqual(6, len(paths))
+        for path in paths:
+            with self.subTest(path=path):
+                RUN.load_scenario(path)
+
     def test_load_scenario_requires_matching_fixture(self):
         with tempfile.TemporaryDirectory() as temporary:
             scenario_dir = Path(temporary) / "example"
@@ -55,6 +63,8 @@ class SkillEvalHarnessTest(unittest.TestCase):
                 "assertions": {
                     "commands_called": ["verify"],
                     "commands_not_called": ["gh"],
+                    "command_counts": {"verify": 1},
+                    "commands_in_order": ["verify"],
                     "files_contain": [{"path": "value.txt", "text": "after"}],
                     "commit_count": 1,
                     "worktree_clean": True,

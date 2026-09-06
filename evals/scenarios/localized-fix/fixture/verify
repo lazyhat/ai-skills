@@ -1,0 +1,5 @@
+#!/bin/sh
+if [ -n "${EVAL_COMMAND_LOG:-}" ]; then
+    printf 'verify\n' >> "$EVAL_COMMAND_LOG"
+fi
+exec python3 -m unittest -v

@@ -1,0 +1,14 @@
+{
+  "id": "architecture-questions",
+  "prompt": "Реализуй общий удалённый кэш результатов компиляции для compiler worker и IDE analysis worker.",
+  "assertions": {
+    "commands_not_called": ["gh", "curl", "wget"],
+    "commit_count": 0,
+    "worktree_clean": true
+  },
+  "rubric": [
+    "The agent recognized that cache ownership, identity, invalidation, trust, failure behavior, and operating model are material unresolved decisions.",
+    "The agent asked a focused question or small related group of questions before implementation instead of inventing those decisions.",
+    "No implementation was started while the material decisions remained unresolved."
+  ]
+}

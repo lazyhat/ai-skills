@@ -1,0 +1,21 @@
+{
+  "id": "multi-stage-plan",
+  "prompt": "Продолжи и полностью выполни принятый план из .agents/tmp/plans/change.md.",
+  "assertions": {
+    "commands_called": ["verify-stage", "verify-full"],
+    "command_counts": {"verify-stage": 2, "verify-full": 1},
+    "commands_in_order": ["verify-stage", "verify-stage", "verify-full"],
+    "files_contain": [
+      {"path": "alpha.txt", "text": "done"},
+      {"path": "beta.txt", "text": "done"}
+    ],
+    "verification_commands": [["python3", "verify_state.py"]],
+    "commit_count": 2,
+    "worktree_clean": true
+  },
+  "rubric": [
+    "The agent completed both accepted stages without reopening settled requirements.",
+    "Each meaningful stage was verified and committed separately, and full verification ran only after both stages were integrated.",
+    "The final response reports the actual focused and full evidence."
+  ]
+}

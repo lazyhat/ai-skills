@@ -30,3 +30,9 @@ readlink -f ~/.agents/skills
 
 The resolved path must be this checkout's `skills/` directory. Recreate the link when the checkout moves;
 do not maintain a second copied installation that can drift from this repository.
+
+## Behavioral evaluations
+
+The opt-in harness under [`evals/`](evals/README.md) runs realistic requests in disposable repositories and checks
+observable agent behavior. It is intentionally local: model calls, including an optional semantic judge, run only
+when explicitly invoked.
