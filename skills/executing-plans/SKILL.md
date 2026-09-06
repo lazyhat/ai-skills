@@ -24,10 +24,11 @@ Implement all remaining tasks in dependency order. Keep plan status current when
 resumption, but do not create arbitrary batch checkpoints or pause for routine deviations.
 
 - For production behavior, use `testing-strategy`.
-- For failures or unexpected behavior, use `superpowers:systematic-debugging`.
-- Verify meaningful stages with focused checks and the final outcome with
-  `superpowers:verification-before-completion`.
+- For failures or unexpected behavior, use `debugging-strategy`.
+- After each meaningful completed stage, use `verification-workflow` with focused checks and create a
+  coherent commit before continuing.
 
-Use verification proportional to risk and record any checks that cannot be run. Commit only when user or
-repository instructions call for it. If the implementation is complete and branch integration remains a
-decision, use `superpowers:finishing-a-development-branch`.
+After every planned stage is complete, run the repository's full verification. Resolve failures through
+`debugging-strategy`; do not claim completion based only on the focused stage checks. Record checks that
+cannot be run, then stop after the final verified commit. Do not push, merge, or open a pull request unless
+the user explicitly requests it.

@@ -32,7 +32,9 @@ Make the plan self-contained enough to resume later. Include:
 
 For changes to production behavior, use `testing-strategy` to plan proportional evidence and decide where
 test-first adds value. Describe meaningful, verifiable deliverables rather than minute-by-minute edits. Do
-not require per-task commits, reviews, worktrees, or delegation unless user or repository instructions do.
+not require reviews, worktrees, or delegation unless user or repository instructions do. For a large plan,
+make meaningful independently verifiable stages the commit boundaries; do not create commits for mechanical
+microsteps.
 
 ## Review and Handoff
 

@@ -38,7 +38,7 @@ that is accessible.
 ## Route the Work
 
 - For a bug, failing test, build failure, performance regression, or unexpected behavior, use
-  `superpowers:systematic-debugging` before proposing or implementing a fix.
+  `debugging-strategy` before proposing or implementing a fix.
 - For explicit ideation or unresolved product, architecture, public-interface, or scope decisions, use
   `brainstorming`. For architecturally significant work in a roadmap-tracked repository, first use
   `using-github-roadmap` as required by repository policy, then continue with `brainstorming`.
@@ -47,11 +47,13 @@ that is accessible.
 - Before changing production behavior, use `testing-strategy` to choose proportional evidence and whether
   test-first is valuable. Documentation, formatting, and non-executable configuration normally use direct
   validation rather than automated tests unless repository policy says otherwise.
-- When acting on code-review feedback, use `superpowers:receiving-code-review`.
+- When acting on code-review feedback, use `review-feedback`.
 
-Before claiming completion, committing, opening a pull request, or handing work back, use
-`superpowers:verification-before-completion` with checks proportional to the change. If implementation is
-complete but branch integration remains a decision, use `superpowers:finishing-a-development-branch`.
+Before claiming completion, committing, or handing work back, use
+`verification-workflow`. For a localized task, run proportional checks, create one
+focused commit, and stop. For a multi-stage plan, run focused verification and create a coherent commit
+after each completed stage; after every stage is complete, run the repository's full verification and
+stop. Do not push, merge, or open a pull request unless the user explicitly requests it.
 
 Repository and user instructions override workflow preferences, including artifact locations, issue
 tracking, worktrees, delegation, commits, remote operations, and verification commands.
