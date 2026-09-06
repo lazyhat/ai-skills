@@ -23,7 +23,7 @@ change and asks to continue, follow the verification and stopping rules in `prod
 Implement all remaining tasks in dependency order. Keep plan status current when it helps later
 resumption, but do not create arbitrary batch checkpoints or pause for routine deviations.
 
-- For production behavior, use `superpowers:test-driven-development`.
+- For production behavior, use `testing-strategy`.
 - For failures or unexpected behavior, use `superpowers:systematic-debugging`.
 - Verify meaningful stages with focused checks and the final outcome with
   `superpowers:verification-before-completion`.

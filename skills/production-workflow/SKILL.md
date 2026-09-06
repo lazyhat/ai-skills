@@ -44,8 +44,9 @@ that is accessible.
   `using-github-roadmap` as required by repository policy, then continue with `brainstorming`.
 - For an accepted design or requirements that need coordinated implementation stages, use
   `writing-plans`. When resuming an existing plan, use `executing-plans`.
-- Before changing production behavior, use `superpowers:test-driven-development`. Documentation,
-  formatting, and non-executable configuration do not require TDD unless repository policy says otherwise.
+- Before changing production behavior, use `testing-strategy` to choose proportional evidence and whether
+  test-first is valuable. Documentation, formatting, and non-executable configuration normally use direct
+  validation rather than automated tests unless repository policy says otherwise.
 - When acting on code-review feedback, use `superpowers:receiving-code-review`.
 
 Before claiming completion, committing, opening a pull request, or handing work back, use

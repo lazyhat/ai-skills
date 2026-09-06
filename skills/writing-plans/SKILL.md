@@ -30,10 +30,9 @@ Make the plan self-contained enough to resume later. Include:
 - dependencies, interfaces, migrations, compatibility, and documentation only where relevant;
 - acceptance criteria and proportional verification commands or manual checks.
 
-For changes to production behavior, plan observable tests before implementation and route execution
-through `superpowers:test-driven-development`. Describe meaningful, testable deliverables rather than
-minute-by-minute edits. Do not require per-task commits, reviews, worktrees, or delegation unless user or
-repository instructions do.
+For changes to production behavior, use `testing-strategy` to plan proportional evidence and decide where
+test-first adds value. Describe meaningful, verifiable deliverables rather than minute-by-minute edits. Do
+not require per-task commits, reviews, worktrees, or delegation unless user or repository instructions do.
 
 ## Review and Handoff
 
