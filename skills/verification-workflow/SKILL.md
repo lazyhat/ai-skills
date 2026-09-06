@@ -24,6 +24,14 @@ Do not require red-green history, delete working code, or temporarily revert a f
 test. Test timing and value belong to `testing-strategy`. A passing test proves the current behavior; make
 stronger claims about regression sensitivity only when the available evidence supports them.
 
+## Verify That the Evidence Ran
+
+An aggregate command proves only the checks in its actual task graph, not the checks suggested by its name.
+Before relying on a new or changed aggregate, inspect its dependencies or execution report and confirm that
+every required scenario ran against the intended inputs. A missing artifact, filtered or zero-test run,
+silent early return, or skipped mandatory scenario is failed evidence even when the command exits successfully.
+Cached or up-to-date results are acceptable only when their declared inputs cover the current change.
+
 ## Apply the Gate
 
 1. State internally what is about to be claimed or committed and which fresh evidence would prove it.

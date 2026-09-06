@@ -6,10 +6,21 @@ the configured status option IDs.
 
 ## Select or create
 
-List active project items:
+Fetch the complete project item set before selecting or resolving an issue. Start with a limit comfortably
+above the current project size and compare the returned count with `totalCount`:
 
 ```bash
-gh project item-list <project_number> --owner <owner> --limit 100 --format json \
+gh project item-list <project_number> --owner <owner> --limit 1000 --format json \
+  --jq '{returned: (.items | length), total: .totalCount}'
+```
+
+If `returned` is smaller than `total`, increase the limit and repeat. Treat a partial item list as an error;
+do not infer that an issue is absent from it.
+
+List active project items from the complete result:
+
+```bash
+gh project item-list <project_number> --owner <owner> --limit 1000 --format json \
   --jq '.items[] | select(.status == "Now" or .status == "Next" or .status == "Backlog" or .status == "Inbox") | "#\(.content.number) [\(.status)] \(.content.title)"'
 ```
 
@@ -20,6 +31,10 @@ using the issue template, add it to the project, and retain the returned project
 gh issue create --repo <repo> --title "<title>" --label "<labels>" --body-file <body-file>
 gh project item-add <project_number> --owner <owner> --url <issue-url> --format json --jq .id
 ```
+
+If issue creation succeeds but a later project operation fails, resume from the created issue URL. Search
+for that exact URL before adding it again; never create a replacement issue merely because the item ID was
+lost.
 
 Infer a concise title and labels from repository conventions when they are unambiguous. Ask when the
 choice would materially change scope or ownership.
@@ -36,12 +51,15 @@ gh project item-edit \
   --single-select-option-id <status_option_id>
 ```
 
-Resolve an unknown item ID from the issue number:
+Resolve an unknown item ID from the complete project result using the full issue URL:
 
 ```bash
-gh project item-list <project_number> --owner <owner> --limit 100 --format json \
-  --jq '.items[] | select(.content.number == <issue_number>) | .id'
+gh project item-list <project_number> --owner <owner> --limit 1000 --format json \
+  --jq '.items[] | select(.content.url == "https://github.com/<repo>/issues/<issue_number>") | .id'
 ```
+
+Require exactly one matching item. An issue number alone is not an identity because one project can contain
+issues from multiple repositories; use the full URL or node ID for all lookups and comparisons.
 
 Move qualifying work to `Now` before implementation. Leave the issue open while integration or
 required manual checks remain. After integration and verification, close it and confirm `Done`:
