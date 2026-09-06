@@ -28,6 +28,11 @@ Ask for a decision before implementation only when:
 - the recommended design expands or redirects the requested scope; or
 - applicable repository or user instructions require design review.
 
+Treat a choice between a durable architectural correction and an expedient workaround as material when the workaround
+would preserve incorrect ownership or boundaries, duplicate a source of truth, bypass an intended abstraction or
+invariant, or special-case a symptom. Explain both options and ask the user; do not select the workaround by default.
+A small but architecturally sound fix does not require this extra decision.
+
 When the user explicitly asks only to explore, discuss, or design, deliver the design without assuming
 authorization to implement it. A user's selection of a proposed option counts as approval of that option.
 
