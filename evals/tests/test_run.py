@@ -57,6 +57,7 @@ class SkillEvalHarnessTest(unittest.TestCase):
             fixture = scenario_dir / "fixture"
             fixture.mkdir(parents=True)
             (fixture / "value.txt").write_text("before\n", encoding="utf-8")
+            (fixture / "module.py").write_text("VALUE = 1\n", encoding="utf-8")
             scenario = {
                 "id": "example",
                 "prompt": "Change the value",
@@ -66,6 +67,7 @@ class SkillEvalHarnessTest(unittest.TestCase):
                     "command_counts": {"verify": 1},
                     "commands_in_order": ["verify"],
                     "files_contain": [{"path": "value.txt", "text": "after"}],
+                    "verification_commands": [["python3", "-c", "import module"]],
                     "commit_count": 1,
                     "worktree_clean": True,
                 },
@@ -110,6 +112,34 @@ class SkillEvalHarnessTest(unittest.TestCase):
     def test_semantic_rubric_never_passes_without_review(self):
         self.assertEqual("NEEDS_REVIEW", RUN.classify_status([], ["Ask about ownership"], None))
         self.assertEqual(2, RUN.exit_code({"PASS": 1, "FAIL": 0, "NEEDS_REVIEW": 1}))
+
+    def test_execution_evidence_keeps_completed_commands(self):
+        with tempfile.TemporaryDirectory() as temporary:
+            trace = Path(temporary) / "trace.jsonl"
+            trace.write_text(
+                "\n".join(
+                    [
+                        json.dumps({"type": "turn.started"}),
+                        json.dumps(
+                            {
+                                "type": "item.completed",
+                                "item": {
+                                    "type": "command_execution",
+                                    "command": "./verify",
+                                    "exit_code": 0,
+                                    "aggregated_output": "all tests passed",
+                                },
+                            }
+                        ),
+                    ]
+                ),
+                encoding="utf-8",
+            )
+
+            self.assertEqual(
+                [{"command": "./verify", "exit_code": 0, "output": "all tests passed"}],
+                RUN.execution_evidence(trace),
+            )
 
     def test_failures_override_semantic_judgment(self):
         self.assertEqual("FAIL", RUN.classify_status(["missing test"], ["Ask a question"], True))

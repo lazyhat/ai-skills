@@ -146,6 +146,7 @@ def run_subject(
     environment = os.environ.copy()
     environment["PATH"] = f"{worktree / '.eval' / 'bin'}{os.pathsep}{environment['PATH']}"
     environment["EVAL_COMMAND_LOG"] = str(command_log)
+    environment["PYTHONDONTWRITEBYTECODE"] = "1"
     timed_out = False
     returncode = 1
     with trace_path.open("w", encoding="utf-8") as trace, stderr_path.open("w", encoding="utf-8") as stderr:
@@ -174,6 +175,26 @@ def run_subject(
 
 def read_command_names(command_log: Path) -> list[str]:
     return [line.split(maxsplit=1)[0] for line in command_log.read_text(encoding="utf-8").splitlines() if line]
+
+
+def execution_evidence(trace_path: Path) -> list[dict[str, Any]]:
+    evidence: list[dict[str, Any]] = []
+    for line in trace_path.read_text(encoding="utf-8").splitlines():
+        try:
+            event = json.loads(line)
+        except json.JSONDecodeError:
+            continue
+        item = event.get("item", {})
+        if event.get("type") != "item.completed" or item.get("type") != "command_execution":
+            continue
+        evidence.append(
+            {
+                "command": item.get("command", ""),
+                "exit_code": item.get("exit_code"),
+                "output": item.get("aggregated_output", "")[-4000:],
+            }
+        )
+    return evidence[-30:]
 
 
 def evaluate_assertions(
@@ -214,7 +235,13 @@ def evaluate_assertions(
         if not arguments or Path(arguments[0]).name in DENIED_COMMANDS:
             failures.append(f"verification command {index} is empty or denied: {arguments}")
             continue
-        completed = subprocess.run(arguments, cwd=worktree, text=True, capture_output=True, check=False)
+        environment = os.environ.copy()
+        environment["PATH"] = f"{worktree / '.eval' / 'bin'}{os.pathsep}{environment['PATH']}"
+        environment["EVAL_COMMAND_LOG"] = str(command_log)
+        environment["PYTHONDONTWRITEBYTECODE"] = "1"
+        completed = subprocess.run(
+            arguments, cwd=worktree, env=environment, text=True, capture_output=True, check=False
+        )
         (result_dir / f"verification-{index}.txt").write_text(
             completed.stdout + completed.stderr, encoding="utf-8"
         )
@@ -233,7 +260,13 @@ def evaluate_assertions(
 
 
 def judge_semantics(
-    scenario: dict[str, Any], subject: SubjectResult, worktree: Path, result_dir: Path, model: str | None, timeout: int
+    scenario: dict[str, Any],
+    subject: SubjectResult,
+    worktree: Path,
+    command_log: Path,
+    result_dir: Path,
+    model: str | None,
+    timeout: int,
 ) -> tuple[bool, dict[str, Any]]:
     schema_path = result_dir / "judge-schema.json"
     output_path = result_dir / "judge.json"
@@ -252,8 +285,18 @@ def judge_semantics(
     evidence = {
         "request": scenario["prompt"],
         "rubric": scenario.get("rubric", []),
+        "subject_exit_code": subject.returncode,
+        "subject_timed_out": subject.timed_out,
         "final_message": subject.final_message,
         "git_diff": diff[:20000],
+        "git_status": run_checked(["git", "status", "--short"], worktree),
+        "subject_commits": run_checked(["git", "log", "--oneline", f"{baseline}..HEAD"], worktree),
+        "logged_fixture_commands": command_log.read_text(encoding="utf-8")[-10000:],
+        "command_executions": execution_evidence(subject.trace_path),
+        "post_verification": {
+            path.name: path.read_text(encoding="utf-8")[-10000:]
+            for path in sorted(result_dir.glob("verification-*.txt"))
+        },
     }
     prompt = (
         "Evaluate the supplied agent run only against every rubric item. Do not reward wording or claimed skill "
@@ -289,9 +332,12 @@ def judge_semantics(
         return False, {"pass": False, "findings": [f"judge failed with exit {completed.returncode}"]}
     try:
         result = json.loads(output_path.read_text(encoding="utf-8"))
-    except (json.JSONDecodeError, KeyError) as error:
+        passed = bool(result["pass"])
+        if not isinstance(result.get("findings"), list):
+            raise ValueError("findings is not an array")
+    except (json.JSONDecodeError, KeyError, TypeError, ValueError) as error:
         return False, {"pass": False, "findings": [f"judge returned invalid output: {error}"]}
-    return bool(result["pass"]), result
+    return passed, result
 
 
 def scenario_paths(selected: list[str]) -> list[Path]:
@@ -356,8 +402,10 @@ def main() -> int:
             judge_passed: bool | None = None
             if not failures and scenario.get("rubric") and args.judge:
                 judge_passed, judge_result = judge_semantics(
-                    scenario, subject, worktree, result_dir, args.model, args.timeout
+                    scenario, subject, worktree, command_log, result_dir, args.model, args.timeout
                 )
+                if not judge_passed:
+                    failures.extend(f"judge: {finding}" for finding in judge_result["findings"])
             status = classify_status(failures, scenario.get("rubric", []), judge_passed)
             if args.keep_worktrees:
                 shutil.copytree(worktree, result_dir / "worktree", ignore=shutil.ignore_patterns(".eval"))
