@@ -34,10 +34,13 @@ authorization to implement it. A user's selection of a proposed option counts as
 ## Workflow
 
 1. Read applicable repository instructions and only enough relevant context to understand the decision.
-2. Ask questions whose answers could materially change the design. Infer routine details from context;
-   group closely related questions when that is easier to answer.
-3. Offer multiple approaches only when they are genuinely distinct. Lead with the recommendation and
-   explain the consequential trade-offs.
+2. Ask questions whose answers could materially change the design. For architecture work, do not silently
+   assume missing boundaries, constraints, scale, compatibility, operating model, or migration needs.
+   When the solution space is broad, narrow it iteratively with one question or a small related group at
+   a time. Infer only routine details and state consequential assumptions explicitly.
+3. Offer multiple approaches only when they are genuinely distinct. Lead with the recommendation after
+   enough context is known, and explain the consequential trade-offs. A preliminary recommendation may
+   accompany questions when it helps the user answer, but label its assumptions.
 4. Present a design proportional to the uncertainty. Cover boundaries, interfaces, data flow, failure
    behavior, and verification only where relevant.
 5. Resolve remaining material decisions. If the original request authorized implementation, continue

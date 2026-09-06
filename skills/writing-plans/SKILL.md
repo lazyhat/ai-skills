@@ -15,7 +15,7 @@ to make the plan concrete. If a material product, architecture, interface, or sc
 open, use `brainstorming` before planning.
 
 Do not create a plan for a small localized change that can proceed directly through `production-workflow`
-and, when behavior changes, test-driven development.
+and, when behavior changes, `testing-strategy`.
 
 ## Write the Plan
 
