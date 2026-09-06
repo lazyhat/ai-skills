@@ -1,324 +1,48 @@
 ---
 name: using-github-roadmap
-description: Use when starting feature work, bugfix, or idea capture in a repo that tracks work on a GitHub Projects v2 Roadmap board - binds each unit of work to a tracked issue before brainstorming, planning, executing, or finishing.
+description: Use when beginning architecturally significant work or capturing a durable idea in a repository configured with a GitHub Projects v2 roadmap.
 ---
 
 # Using a GitHub Roadmap
 
-## Overview
-
-All non-trivial work in a roadmap-tracked repo MUST be bound to a GitHub issue that lives on the project board. This skill is the single source of truth for the `gh` commands and the workflow that brainstorming, writing-plans, executing-plans, and finishing-a-development-branch hook into.
-
-**Announce at start:** "I'm using the using-github-roadmap skill to bind this work to the roadmap."
-
-## GitHub Tooling
-
-Use the `gh` CLI for GitHub issues, pull requests, repository metadata, and Projects v2 operations. Do not use the
-GitHub MCP server or GitHub app connector tools. When a first-class `gh` command is missing or insufficient, use
-`gh api` for REST or GraphQL calls.
-
-<HARD-GATE>
-Do NOT continue with brainstorming, writing-plans, executing-plans, or finishing-a-development-branch until the current unit of work has an associated GitHub issue and that issue is on the roadmap project. If no project config is present in the repo, stop and ask the user to add one (template in the "Per-repo config" section).
-</HARD-GATE>
-
-## When to Use
-
-- Starting any feature, bugfix, refactor, or chore that will produce a commit.
-- Capturing a new idea that the user wants to remember.
-- Resuming work on a partially-implemented spec/plan.
-- Before invoking brainstorming, writing-plans, executing-plans, or finishing-a-development-branch.
-
-**Do NOT use for:** one-off shell/terminal questions, reading code, answering questions that produce no commits.
-
-## Per-repo config
-
-Skill reads `.github/copilot-instructions.md` from the active repo and looks for a fenced block tagged `roadmap`:
-
-````markdown
-```yaml roadmap
-owner: <github-user-or-org>
-repo: <owner/name>
-project_number: <N>
-project_id: <PVT_xxx>          # gh project view N --owner <owner> --format json
-status_field_id: <PVTSSF_xxx>  # gh project field-list N --owner <owner> --format json
-statuses:
-  Inbox: <option-id>
-  Backlog: <option-id>
-  Next: <option-id>
-  Now: <option-id>
-  Done: <option-id>
-  Dropped: <option-id>
-```
-````
-
-If the block is missing or incomplete, stop and ask the user to add it. Print the template above verbatim.
-
-## Operations
-
-### `roadmap:select-or-create`
-
-Used at the start of brainstorming, writing-plans, or executing-plans.
-
-1. List active issues on the board:
-   ```bash
-   gh project item-list <N> --owner <owner> --limit 50 --format json \
-     --jq '.items[] | select(.status == "Now" or .status == "Next" or .status == "Backlog" or .status == "Inbox") | "#\(.content.number) [\(.status)] \(.content.title)"'
-   ```
-2. Match the current unit of work against candidate issues strictly:
-   - Use an existing issue only when its title/body match the current deliverable 1:1.
-   - Do not bind work to a broad, adjacent, or merely related issue just because it is close.
-   - If a candidate is related but not exact, run `roadmap:related-issue-triage` before selecting or creating anything.
-3. Present a `vscode_askQuestions` with exact-match issues, related-but-not-exact issues clearly marked, "Create new issue", and "Skip (work without issue, requires explicit user override)".
-4. If create:
-   - Ask for title, theme label (one of repo's `theme:*`), optional `priority:*`, `kind:idea` for umbrella.
-   - Write a detailed issue body using `roadmap:issue-body-template`.
-   - `gh issue create --repo <repo> --title "<title>" --label "<labels>" --body "<body>"` → capture URL.
-   - `gh project item-add <N> --owner <owner> --url <URL> --format json --jq .id` → capture item id.
-   - Set Status = Inbox via `roadmap:status`.
-5. Return `{issue_number, issue_url, item_id}`.
-
-### `roadmap:track-active-issue`
-
-After selecting or creating an issue, keep tracking it until the final response.
-
-Required working notes for the current session:
-
-```text
-Roadmap issue: #<n> <url>
-Project item: <item-id>
-Current status: <Inbox|Backlog|Next|Now|Done|Dropped>
-Close policy: <close now | leave open for manual check | leave open for follow-up>
-```
-
-Rules:
-- Move the exact issue to `Now` before making code changes for it.
-- Every spec, plan, and commit for the work must reference the exact issue number.
-- Before final response, re-check the issue status and decide whether it should be closed, moved to `Done`, or left open.
-- If verification includes manual/in-game checks that the user will do, leave the issue open and state the exact remaining checks in the final response.
-- If all acceptance criteria are verified, close the issue as `completed` and set Roadmap Status = Done.
-- If the work is abandoned, close as `not_planned`, add `status:dropped` when available, and set Roadmap Status = Dropped.
-- If permissions prevent comments, close, or status edits, report the failed command and exact required manual action.
-- Never finish with only “committed” when a Roadmap issue is still in `Now`; explicitly say why it remains open or what status change was performed.
-
-### `roadmap:keep-issue-current`
-
-Used during brainstorming and planning whenever the design materially changes.
-Do not let the issue remain as a stale placeholder while the chat/spec moves on.
-
-Update the exact bound issue, not a related umbrella issue:
-
-1. Re-read the issue before updating:
-   ```bash
-   gh issue view <n> --repo <repo> --json number,title,body,state,labels,url
-   ```
-2. If the title/scope/acceptance criteria no longer match the current design,
-   update the issue body using `roadmap:issue-body-template` sections. Preserve
-   useful existing links and comments; do not erase context.
-3. Add or update these details before leaving brainstorming:
-   - current design summary;
-   - accepted architecture decisions;
-   - explicit out-of-scope boundaries;
-   - verification expectations;
-   - spec link, once the spec exists;
-   - follow-up issues and parent/related links.
-4. If the issue has become obsolete or too broad/narrow, run
-   `roadmap:related-issue-triage` instead of silently continuing.
-5. If `gh issue edit` fails due token/tooling limitations, use `gh api` PATCH
-   for the body. If body edits are impossible, add a comment with the current
-   design state and report the limitation in the final response.
-
-Minimum final state after brainstorming: the issue must let a reader understand
-what was decided without reading the chat transcript.
-
-### `roadmap:issue-body-template`
-
-New issues created during execution must be useful without the chat transcript. Do not create one-line placeholder issues.
-
-Use this Markdown body:
-
-```markdown
-## Context
-
-<Why this work exists now. Include the user-visible problem, current code state, and any related issue numbers.>
-
-## Goal
-
-<One concrete outcome this issue should deliver.>
-
-## Scope
-
-- <Specific change 1>
-- <Specific change 2>
-- <Specific change 3>
-
-## Out of Scope
-
-- <Explicitly excluded adjacent work>
-- <Architecture/feature work that should not sneak into this issue>
-
-## Acceptance Criteria
-
-- [ ] <Observable behavior or code boundary that must be true>
-- [ ] <Compatibility/API behavior that must remain true>
-- [ ] <User-facing or developer-facing result>
-
-## Verification
-
-- <Exact command/test/manual check expected for this issue>
-- <Additional command/test/manual check if needed>
-
-## Links
-
-- Related: #<n>
-- Parent/Sub-task: #<n>
-```
-
-Rules:
-- If there are no related issues, omit the `Links` section.
-- `Acceptance Criteria` must be specific enough that a reviewer can decide whether the issue is done.
-- `Verification` must name concrete commands or concrete in-game/manual checks.
-- `Out of Scope` is required when an adjacent issue exists or when the work could easily expand.
-- If you cannot fill a section from available context, ask the user before creating the issue.
-
-### `roadmap:related-issue-triage`
-
-Use this when an existing issue is close to the current work but does not match 1:1.
-
-1. Check whether the existing issue is still relevant:
-   ```bash
-   gh issue view <n> --repo <repo> --json number,title,body,state,labels,url
-   ```
-   - If the issue is obsolete or no longer describes intended work, close it as `not_planned`, set Roadmap Status = Dropped, then create a new exact issue for the current work.
-   - If the issue is still relevant, keep it open and create or select a separate exact issue for the current work.
-2. Establish the relationship:
-   - If the existing issue is broader/umbrella and current work is a slice, make the current issue a sub-issue of the existing one when the repo/project supports GitHub sub-issues.
-   - If the current work is broader and the existing issue is a slice, make the existing issue a sub-issue of the current issue when supported.
-   - If sub-issues are not available through the configured tooling, add explicit cross-links with issue comments:
-     ```bash
-     gh issue comment <parent> --repo <repo> --body "Sub-task: #<child>"
-     gh issue comment <child> --repo <repo> --body "Parent task: #<parent>"
-     ```
-   - If neither issue owns the other, link both as related:
-     ```bash
-     gh issue comment <a> --repo <repo> --body "Related: #<b>"
-     gh issue comment <b> --repo <repo> --body "Related: #<a>"
-     ```
-3. Bind the current session to the exact issue, not to the related issue.
-4. If relationship semantics are ambiguous, stop and ask the user before creating links.
-
-### `roadmap:link-spec`
-
-Return the line to embed at the top of any spec/plan:
-
-```markdown
-> Issue: [#N](https://github.com/<owner>/<repo>/issues/N)
-```
-
-This is the first content line under the `# Title` of every spec and plan generated in a roadmap-tracked repo.
-
-### `roadmap:artifact-filename`
-
-Specs, design docs, and plans generated for roadmap-tracked work MUST include
-the bound issue number in the filename.
-
-Before choosing a path, read the active repo instructions. Agent specs/plans
-belong in ignored scratch space by default and must not be committed unless the
-user explicitly asks for durable repo docs. The GitHub issue remains the durable
-source of truth for scope, acceptance criteria, verification, and links.
-
-Use these default scratch forms:
-
-```text
-.agents/tmp/specs/YYYY-MM-DD-issue-N-<topic>-design.md
-.agents/tmp/plans/YYYY-MM-DD-issue-N-<feature-name>.md
-```
-
-Examples for issue #52:
-
-```text
-.agents/tmp/specs/2026-05-24-issue-52-rux-storage-mmio-contract-design.md
-.agents/tmp/plans/2026-05-24-issue-52-rux-storage-mmio-contract.md
-```
-
-The issue header line from `roadmap:link-spec` is still required inside the
-file. The filename is for filesystem discoverability; the header is for
-clickable GitHub traceability. For scratch artifacts, update the issue body or
-comments with the accepted design/plan summary instead of relying on a committed
-file link.
-
-### `roadmap:status <Inbox|Backlog|Next|Now|Done|Dropped> <item-id>`
-
-```bash
-gh project item-edit \
-  --project-id <project_id> \
-  --field-id <status_field_id> \
-  --id <item-id> \
-  --single-select-option-id <statuses[<status>]>
-```
-
-If `item-id` is unknown, resolve it from `issue_number`:
-
-```bash
-gh project item-list <N> --owner <owner> --limit 100 --format json \
-  --jq ".items[] | select(.content.number == <issue_number>) | .id"
-```
-
-### `roadmap:close <issue_number> <completed|not_planned>`
-
-```bash
-gh api -X PATCH /repos/<repo>/issues/<n> \
-  -f state=closed -f state_reason=<reason>
-```
-
-GitHub auto-moves closed items to Done in well-configured boards. Verify and set Status explicitly with `roadmap:status Done` if needed.
-
-## Phase hooks (called by other skills)
-
-| Phase | Caller | Action |
-|---|---|---|
-| Pre-brainstorm | brainstorming step 0 | `select-or-create` → return `#N` |
-| During brainstorming | brainstorming steps 3-8 | `keep-issue-current` after material scope/design changes |
-| Spec header | brainstorming step 6 | `link-spec` → embed line in spec |
-| Spec filename | brainstorming step 6 | `artifact-filename` → include `issue-N` in spec filename |
-| Plan header | writing-plans header section | `link-spec` → embed line in plan |
-| Plan filename | writing-plans save path | `artifact-filename` → include `issue-N` in plan filename |
-| Pre-execute | executing-plans step 1.5 | `status Now` |
-| Post-execute | executing-plans step 3 | `status Done` (or `close completed`) |
-| Branch finish | finishing-a-development-branch end | `close <reason>` |
-
-## Common Mistakes
-
-- **Heredoc inside `&&` chain in zsh.** `cat > f << EOF ... EOF && cmd` puts zsh into `cmdand heredoc>` continuation hell. Always run heredocs as standalone commands, or use `--body-file` with a file written via your editor's file-write tool.
-- **fine-grained PAT for user-owned Projects v2.** GitHub explicitly does not support this. For roadmap operations a classic PAT with scope `project` is required. Repo-only issue operations work via REST PATCH on fine-grained tokens but `addComment`, `closeIssue`, and `createProjectV2` GraphQL mutations do not.
-- **Forgetting to add the issue to the project.** `gh issue create` does NOT auto-add to a project. Always follow with `gh project item-add`.
-- **Missing issue number in artifact filenames.** Keep spec/plan filenames date-based, but include `issue-N` in the filename and `Issue: #N` in the header.
-- **Skipping the gate "because it's a small change".** If the change produces a commit on `dev`/`main`, it needs an issue. Use a single `chore: ...` issue if you must.
-
-## Quick Reference
-
-```bash
-# Active board (Roadmap)
-gh project item-list 6 --owner lazyhat --limit 50 --format json \
-  --jq '.items[] | "\(.content.number) [\(.status)] \(.content.title)"'
-
-# New issue + onto board
-URL=$(gh issue create --repo lazyhat/Compukter-Kraft --title "..." --label "theme:language" --body "...")
-ITEM=$(gh project item-add 6 --owner lazyhat --url "$URL" --format json --jq .id)
-
-# Move to Now
-gh project item-edit --project-id PVT_kwHOBkSydc4BYgqn \
-  --field-id PVTSSF_lAHOBkSydc4BYgqnzhTmClk \
-  --id "$ITEM" --single-select-option-id 0ea1b704
-
-# Close
-N=$(echo "$URL" | awk -F/ '{print $NF}')
-gh api -X PATCH /repos/lazyhat/Compukter-Kraft/issues/$N \
-  -f state=closed -f state_reason=completed
-```
-
-## Integration
-
-- **brainstorming** → calls `select-or-create` at step 0, `link-spec` at spec write.
-- **writing-plans** → requires `Issue: #N` header line.
-- **executing-plans** → calls `status Now` before first task, `status Done` after last.
-- **finishing-a-development-branch** → calls `close` after integration.
+Bind architecture-scale work to a precise GitHub issue without adding ceremony to small changes.
+
+## Issue boundary
+
+Require a roadmap issue when the work does one or more of the following:
+
+- introduces a subsystem or a new cross-module capability;
+- materially changes component boundaries, architecture, or a public API/ABI;
+- needs a design specification or coordinated implementation stages;
+- captures a durable idea the user wants tracked.
+
+Do not require an issue for localized bug fixes, documentation changes, test-only changes,
+mechanical refactors, routine chores, or read-only investigation. The user may explicitly require
+or waive issue tracking for any task. If scope is initially unclear, inspect enough context to
+classify it; do not stop small work merely to ask about tracking.
+
+## Workflow
+
+1. Read the applicable repository instructions and the repo's fenced `yaml roadmap` configuration.
+   In Compukters this configuration lives in `.github/copilot-instructions.md`.
+2. For qualifying work, list active roadmap issues and reuse one only when it matches the current
+   deliverable. Otherwise create a focused issue and add it to the configured project.
+3. Ask the user only when multiple plausible issues or materially different scopes require a real
+   choice. Use the available user-input mechanism; do not depend on a named UI-specific tool.
+4. Move the issue to `Now` before implementation. Keep its scope and acceptance criteria current
+   when the design materially changes.
+5. Put the issue number in architecture spec and plan filenames and add a clickable issue line below
+   their title. Follow repository instructions for artifact location and whether they are committed.
+6. Close the issue as `completed` and move it to `Done` only after the work is integrated and its
+   acceptance criteria are verified. If integration or manual verification remains, leave it open
+   and report the remaining step.
+
+Use `gh` for GitHub and Projects v2 operations. Follow repository sandbox and authentication rules.
+Do not substitute GitHub MCP or app tools when the repository requires the CLI.
+
+## References
+
+- Read [references/roadmap-operations.md](references/roadmap-operations.md) when selecting, creating,
+  updating, relating, or closing issues.
+- Read [references/issue-template.md](references/issue-template.md) only when creating or materially
+  rewriting an issue.
