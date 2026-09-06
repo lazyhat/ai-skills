@@ -43,7 +43,7 @@ that is accessible.
   `brainstorming`. For architecturally significant work in a roadmap-tracked repository, first use
   `using-github-roadmap` as required by repository policy, then continue with `brainstorming`.
 - For an accepted design or requirements that need coordinated implementation stages, use
-  `superpowers:writing-plans`. When resuming an existing plan, use `superpowers:executing-plans`.
+  `writing-plans`. When resuming an existing plan, use `executing-plans`.
 - Before changing production behavior, use `superpowers:test-driven-development`. Documentation,
   formatting, and non-executable configuration do not require TDD unless repository policy says otherwise.
 - When acting on code-review feedback, use `superpowers:receiving-code-review`.

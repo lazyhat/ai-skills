@@ -44,7 +44,9 @@ authorization to implement it. A user's selection of a proposed option counts as
    without a ceremonial confirmation. If it requested discussion only, stop with the design and offer
    implementation as a separate next step.
 
-For architecturally significant work in a roadmap-tracked repository, use `using-github-roadmap` as
-required by repository policy. Write a durable specification only for architecture-scale work or when the
-user requests one; follow repository instructions for its location and publication. Use `writing-plans`
-after an accepted design when the implementation is sufficiently multi-step to benefit from a plan.
+For architecturally significant work in a roadmap-tracked repository, use `using-github-roadmap` first
+when repository policy requires it. For architecture-scale design, read
+[references/production-design.md](references/production-design.md) and apply only the relevant concerns.
+Write a durable specification only for architecture-scale work or when the user requests one; follow
+repository instructions for its location and publication. Use `writing-plans` after an accepted design
+when the implementation is sufficiently multi-step to benefit from a plan.
