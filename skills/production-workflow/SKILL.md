@@ -15,6 +15,18 @@ step. Preserve user changes and do not redo completed work. A direct request to 
 authorizes ordinary in-scope changes; ask only when a material choice, missing authority, or conflicting
 state prevents safe progress.
 
+## Preserve Architectural Integrity
+
+Do not silently trade architectural correctness for speed. A workaround is not an acceptable default when it knowingly
+preserves incorrect ownership or component boundaries, duplicates a source of truth, bypasses an intended abstraction
+or invariant, or special-cases a symptom while leaving its structural cause in place.
+
+When a task presents a real choice between a durable architectural correction and a quicker compromise of that kind,
+stop before implementation. Explain the durable option, the expedient option, and their concrete scope and
+consequences, then ask the user which direction to take. Do not implement the compromise without explicit user
+approval, even when it is smaller or reversible. This gate does not apply merely because a correct localized fix is
+small; use it when speed and architectural integrity actually conflict.
+
 ## User-Reported Changes
 
 When the user says they changed, fixed, installed, merged, configured, or verified something and asks to
