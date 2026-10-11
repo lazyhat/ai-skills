@@ -38,10 +38,18 @@ Cached or up-to-date results are acceptable only when their declared inputs cove
 2. Run that evidence after the last relevant change. Read the exit status and the meaningful output; do
    not infer success from partial or truncated results.
 3. Inspect the diff and repository status so the commit contains only intended files and no user changes.
+   Before committing, verify effective author and committer with `git var GIT_AUTHOR_IDENT` and
+   `git var GIT_COMMITTER_IDENT` in this checkout, matching the user's established repository identity.
+   Check the resulting commit's recorded author and committer; setting `--author` alone is insufficient.
 4. If verification fails or contradicts the intended behavior, do not claim success or commit the broken
    stage. Use `debugging-strategy` when investigation is required.
 5. If a required check cannot run, report what remains unverified and why. Do not describe the broader
    result as passing.
 
-After the final full verification succeeds, create any necessary focused fix commit and stop. Do not push,
-merge, or open a pull request unless the user explicitly requests it.
+Repository and user instructions override verification scope and completion defaults. After final
+verification succeeds, create any necessary focused fix commit and apply the authorized completion policy
+in [production-workflow](../production-workflow/SKILL.md). For Compukters, verify the integrated commit with
+proportional checks and retain logs or other evidence outside the task worktree before removing it.
+Confirm its changes are committed and integrated, and that it contains no unrelated files or user changes;
+never force-remove a dirty checkout. Report the verified scope, integration result, and cleanup result.
+Do not push or open a pull request without their own authorization.

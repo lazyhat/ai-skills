@@ -10,8 +10,10 @@ Complete an accepted plan while adapting it to verified repository state.
 ## Resume from Evidence
 
 Read applicable repository instructions, the plan, linked design or issue, and enough current state to
-identify completed and remaining work. Work in the user's current checkout unless explicitly instructed
-otherwise. Preserve user changes and do not redo completed tasks.
+identify completed and remaining work. Reuse the worktree only for the same active task. For new
+implementation, follow checkout preparation in [production-workflow](../production-workflow/SKILL.md),
+including its `worktree-task` default for Compukters. An older plan's manual worktree or cache-copy steps
+must be updated to the current repository workflow. Preserve user changes and do not redo completed tasks.
 
 Review the plan against reality before relying on it. Correct small stale paths, ordering details, and
 other mechanical gaps in place. Stop dependent work and ask the user only when evidence reveals a
@@ -30,5 +32,8 @@ resumption, but do not create arbitrary batch checkpoints or pause for routine d
 
 After every planned stage is complete, run the repository's full verification. Resolve failures through
 `debugging-strategy`; do not claim completion based only on the focused stage checks. Record checks that
-cannot be run, then stop after the final verified commit. Do not push, merge, or open a pull request unless
-the user explicitly requests it.
+cannot be run. Repository and user instructions override verification scope and completion defaults.
+After the final verified commit, apply the authorized completion policy in
+[production-workflow](../production-workflow/SKILL.md). For Compukters this includes local integration,
+retaining verification evidence outside the task checkout, and removing the completed clean worktree.
+Do not push or open a pull request without their own authorization.

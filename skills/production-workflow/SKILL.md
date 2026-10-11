@@ -15,6 +15,65 @@ step. Preserve user changes and do not redo completed work. A direct request to 
 authorizes ordinary in-scope changes; ask only when a material choice, missing authority, or conflicting
 state prevents safe progress.
 
+## Isolate Implementation Work
+
+For repository changes, use a separate Git worktree and task branch by default. Read-only investigation
+can stay in the current checkout. Reuse an existing worktree for the same task rather than creating
+another one. Record the starting commit, preserve the original checkout and its user changes, and keep
+all task edits, checks, and commits in the task worktree. Initialize required submodules at the revisions
+pinned by that checkout; do not copy another agent's uncommitted state. Follow repository conventions
+for worktree locations. Merge only with current or standing user authorization; do not push or remove
+the worktree without authorization.
+
+Explicit user instructions and repository checkout rules override this default. A repository instruction
+to stay in the current checkout applies unless the user explicitly requests a worktree for this task.
+
+## Compukters Checkout Preparation
+
+For Compukters repository changes, use the workspace `worktree-task` command by default before editing.
+Read-only investigation may remain in the current checkout. Reuse a worktree only for the same active task;
+start a new task from current local `dev`, or local `main` for a submodule. Follow explicit user checkout
+instructions when they override this default.
+
+```sh
+./worktree-task feat/display-api
+./worktree-task feat/create-support --submodule addons/create
+./worktree-task fix/vm-execution --repo host/compukter-vm
+```
+
+The first command creates the parent task checkout, initializes the pinned VM, and prepares an independent
+Gradle cache. Addons are opt-in: select required addons with repeatable `--submodule` options before editing;
+use `--all-submodules` only when the task needs all of them. Use `--no-submodules` for tasks needing none.
+`--repo` selects an already initialized submodule repository and starts its task branch from local `main`.
+When a task changes both parent and submodule code, prepare a parent task checkout as well so the resulting
+submodule pin can be committed there.
+
+Run setup outside the sandbox because submodule preparation may access remotes. If the current checkout
+lacks the helper, invoke `worktree-task` by its absolute path in the main Compukters workspace. Enter the
+printed checkout, verify its branch and starting commit, and keep task edits, checks, and commits there.
+Do not replace the helper with manual `git worktree add` or cache copies when it is available. It does not
+fetch or pull the base branch; do not add an unsolicited remote update.
+
+If setup fails after creation, preserve the reported checkout and branch. Fix the cause and repeat the
+same command with `--resume` only while that registered task checkout is clean. After edits, preserve them
+and finish remaining setup manually; do not recreate or reset the checkout. Never adopt another task's
+branch or destination to bypass an existing-path error.
+
+Use sandbox Gradle wrappers for builds: they manage independent copy-on-write cache homes, including cold
+initialization. Never copy caches manually, hard-link cache files, or share writable homes through symlinks.
+For options and recovery details, read `docs/contributors/development.md` and the Gradle-cache section of
+`docs/contributors/verification.md` in the workspace. Completion follows the policy below.
+
+## Verify Git Identity
+
+Before the first task commit, and again after creating or switching a worktree or checkout, inspect
+`git config --show-origin --get user.name`, `git config --show-origin --get user.email`,
+`git var GIT_AUTHOR_IDENT`, and `git var GIT_COMMITTER_IDENT` in the actual working checkout. Environment
+variables can override configured identity. Use the user's established repository identity for both author
+and committer; do not invent an agent identity or rely on `--author` alone. Resolve unexpected differences
+before committing, without changing global Git configuration. Repeat this check for separately committed
+submodules and verify the recorded author/committer after the commit.
+
 ## Preserve Architectural Integrity
 
 Do not silently trade architectural correctness for speed. A workaround is not an acceptable default when it knowingly
@@ -63,9 +122,33 @@ that is accessible.
 
 Before claiming completion, committing, or handing work back, use
 `verification-workflow`. For a localized task, run proportional checks, create one
-focused commit, and stop. For a multi-stage plan, run focused verification and create a coherent commit
+focused commit, and apply any authorized completion policy below. For a multi-stage plan, run focused
+verification and create a coherent commit
 after each completed stage; after every stage is complete, run the repository's full verification and
-stop. Do not push, merge, or open a pull request unless the user explicitly requests it.
+apply any authorized completion policy below. Otherwise stop after verification. Do not push or open a
+pull request unless the user explicitly requests it; a local merge does not authorize either action.
 
 Repository and user instructions override workflow preferences, including artifact locations, issue
 tracking, worktrees, delegation, commits, remote operations, and verification commands.
+
+## Compukters Completion Policy
+
+For the Compukters workspace, the user has given standing authorization to merge verified task work
+before declaring it complete: merge the main repository task branch into `dev`, and merge task work
+inside its Git submodules into their `main` branches. Do not ask for merge permission again unless a
+new user instruction overrides this default or conflicting state makes integration unsafe.
+
+Keep implementation isolated in its task worktree. Before merging, inspect the destination checkout,
+preserve unrelated user changes, and complete the relevant verification. If a task changes a submodule,
+merge its work into `main` first, then record the resulting pinned commit in the parent task branch
+and integrate that branch into `dev`. Verify the integrated commit with checks proportional to the
+change and report the merge result before finishing. Do not discard unrelated submodule checkout
+changes or update their pins as part of an unrelated task.
+
+An explicit request to leave work on its task branch overrides this completion default. This standing
+authorization covers local merges and removal of the completed task's worktree after integrated verification;
+pushing and opening pull requests still require their own authorization. Before removal, retain verification logs
+or other completion evidence outside that worktree, confirm its changes are committed and integrated, and preserve
+any unrelated files or user changes. Never force-remove a dirty checkout or prune unrelated worktrees. Remove only
+worktrees created for the completed task. Start the next task in a fresh worktree from current `dev` (or submodule
+`main`); reuse an existing task worktree only while that same task remains active.

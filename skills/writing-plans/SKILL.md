@@ -31,8 +31,12 @@ Make the plan self-contained enough to resume later. Include:
 - acceptance criteria and proportional verification commands or manual checks.
 
 For changes to production behavior, use `testing-strategy` to plan proportional evidence and decide where
-test-first adds value. Describe meaningful, verifiable deliverables rather than minute-by-minute edits. Do
-not require reviews, worktrees, or delegation unless user or repository instructions do. For a large plan,
+test-first adds value. Describe meaningful, verifiable deliverables rather than minute-by-minute edits.
+Follow checkout preparation in [production-workflow](../production-workflow/SKILL.md), subject to explicit
+user and repository instructions. For Compukters, include the appropriate `worktree-task` invocation and
+required addon selection; do not prescribe manual worktree creation or cache copying. Plan authorized
+integration, evidence retention, and task-worktree cleanup as completion steps. Do not require reviews or
+delegation unless user or repository instructions do. For a large plan,
 make meaningful independently verifiable stages the commit boundaries; do not create commits for mechanical
 microsteps.
 
