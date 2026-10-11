@@ -51,11 +51,14 @@ submodule pin can be committed there.
 Run setup outside the sandbox because submodule preparation may access remotes. If the current checkout
 lacks the helper, invoke `worktree-task` by its absolute path in the main Compukters workspace. Enter the
 printed checkout, verify its branch and starting commit, and keep task edits, checks, and commits there.
+Run `./worktree-task doctor` before the first build, or use the main entrypoint with `doctor --path <checkout>`.
+Resolve reported prerequisite errors before building; a cold cache is informational and does not prove offline readiness.
 Do not replace the helper with manual `git worktree add` or cache copies when it is available. It does not
 fetch or pull the base branch; do not add an unsolicited remote update.
 
 If setup fails after creation, preserve the reported checkout and branch. Fix the cause and repeat the
-same command with `--resume` only while that registered task checkout is clean. After edits, preserve them
+same command from the main workspace entrypoint with `--resume` only while that registered task checkout
+is clean; do not invoke resume from inside the checkout it is preparing. After edits, preserve them
 and finish remaining setup manually; do not recreate or reset the checkout. Never adopt another task's
 branch or destination to bypass an existing-path error.
 
@@ -149,6 +152,13 @@ An explicit request to leave work on its task branch overrides this completion d
 authorization covers local merges and removal of the completed task's worktree after integrated verification;
 pushing and opening pull requests still require their own authorization. Before removal, retain verification logs
 or other completion evidence outside that worktree, confirm its changes are committed and integrated, and preserve
-any unrelated files or user changes. Never force-remove a dirty checkout or prune unrelated worktrees. Remove only
-worktrees created for the completed task. Start the next task in a fresh worktree from current `dev` (or submodule
-`main`); reuse an existing task worktree only while that same task remains active.
+any unrelated files or user changes. Use the main workspace entrypoint `./worktree-task finish <task-branch>`
+from outside the checkout being removed, with `--repo <submodule-path>` for submodule tasks. Keep real verification
+output in `build/agent-logs` or supply repeatable `--evidence <path>` options. The helper checks integration and
+cleanliness, archives evidence and ignored non-build files, and keeps the branch. It performs no merge or verification
+itself. A refusal means preserve the checkout and resolve the stated condition; never bypass it by force-removing a
+dirty checkout. Git's required force flag for clean submodule-containing worktrees is handled by the helper only after
+its preservation checks. For an older helper checkout without a task record, explicitly register its clean
+checkout with the original setup command and `--resume` through the main workspace entrypoint before finishing.
+Do not prune unrelated worktrees. Remove only worktrees created for the completed task. Start the next task in
+a fresh worktree from current `dev` (or submodule `main`); reuse a checkout only for the same active task.

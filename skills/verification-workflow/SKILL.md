@@ -49,7 +49,11 @@ Cached or up-to-date results are acceptable only when their declared inputs cove
 Repository and user instructions override verification scope and completion defaults. After final
 verification succeeds, create any necessary focused fix commit and apply the authorized completion policy
 in [production-workflow](../production-workflow/SKILL.md). For Compukters, verify the integrated commit with
-proportional checks and retain logs or other evidence outside the task worktree before removing it.
+proportional checks, then use `worktree-task finish <task-branch>` from the main workspace, supplying
+verification evidence via `build/agent-logs` or `--evidence <path>`. The helper retains evidence outside
+the task worktree before removal; its integration check does not replace verification. Use `--repo
+<submodule-path>` for submodule tasks. If the helper refuses completion, preserve the checkout and resolve
+the reported condition; do not bypass the checks with manual removal.
 Confirm its changes are committed and integrated, and that it contains no unrelated files or user changes;
 never force-remove a dirty checkout. Report the verified scope, integration result, and cleanup result.
 Do not push or open a pull request without their own authorization.
